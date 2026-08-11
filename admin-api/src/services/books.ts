@@ -93,3 +93,16 @@ export async function findBookById(db: D1Database, id: string): Promise<BookReco
   const row = await db.prepare("SELECT * FROM books WHERE id = ?1").bind(id).first<BookRow>();
   return row ? mapRow(row) : null;
 }
+
+// Guarded decrement — only succeeds while a copy is actually available. Returns true if a copy
+// was decremented, false if the book had zero copies available (caller must treat this as a
+// race/conflict, not silently proceed). See specs/004-reservation-flow/research.md.
+export async function decrementQuantityAvailable(db: D1Database, bookId: string): Promise<boolean> {
+  const result = await db
+    .prepare(
+      "UPDATE books SET quantity_available = quantity_available - 1 WHERE id = ?1 AND quantity_available > 0",
+    )
+    .bind(bookId)
+    .run();
+  return (result.meta.changes ?? 0) > 0;
+}

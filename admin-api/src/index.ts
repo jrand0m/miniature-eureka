@@ -6,6 +6,8 @@ import type { AppEnv } from "./types";
 import { authRoutes } from "./routes/auth";
 import { usersRoutes } from "./routes/users";
 import { booksRoutes } from "./routes/books";
+import { reservationsRoutes } from "./routes/reservations";
+import { adminReservationsRoutes } from "./routes/admin-reservations";
 
 const app = new Hono<AppEnv>();
 
@@ -32,5 +34,9 @@ app.use(
 app.route("/auth", authRoutes);
 app.route("/admin/users", usersRoutes);
 app.route("/books", booksRoutes);
+// T010 + T016: reservation endpoints for any signed-in user — see routes/reservations.ts
+app.route("/reservations", reservationsRoutes);
+// T014: admin-only reservation endpoints — see routes/admin-reservations.ts
+app.route("/admin/reservations", adminReservationsRoutes);
 
 export default app;
