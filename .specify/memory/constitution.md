@@ -1,20 +1,17 @@
 <!--
 Sync Impact Report
-Version change: 1.0.0 → 1.1.0
-Modified principles:
-  - I. Separated Frontend & Backend Projects — clarified that the Admin API MAY expose a narrow
-    set of unauthenticated account endpoints (registration/login/logout) consumed by the Public
-    UI, in addition to its token-protected administrative endpoints.
-  - II. Static-First Public Delivery — clarified that "no computation" constrains the
-    hosting/build layer (no server-rendering runtime), not the browser: client-side JS in the
-    static bundle may call the Admin API's narrow public account surface at runtime. Named
-    Cloudflare Pages explicitly as the hosting mechanism.
-Added sections: none (expanded existing Platform & Delivery Constraints hosting bullet to state
-  the Admin UI's hosting model, previously unspecified)
+Version change: 1.1.0 → 1.2.0
+Modified principles: none (Core Principles I–V unchanged)
+Added sections: none — materially expanded the existing Platform & Delivery Constraints CI/CD
+  bullet (PR test/prerequisite gate; merge-to-master MUST trigger Cloudflare deployment) and the
+  Development Workflow section (per-task git worktree isolation; every unit of work MUST land via
+  its own pull request, direct commits/pushes to master prohibited except initial bootstrap).
 Removed sections: none
 Templates requiring updates: ⚠ pending — plan/spec/tasks templates read this constitution at runtime;
   no template files were modified by this command per the constitution scope guard.
-Follow-up TODOs: none
+Follow-up TODOs: none — see Next Actions for the deferred, non-governance implementation work
+  (updating the three existing GitHub Actions workflow files to add a PR test/prerequisite gate
+  and to trigger only on merge to master for deploy).
 -->
 
 # Library Platform Constitution
@@ -82,12 +79,19 @@ proven end-to-end.
   free-tier limits (e.g., D1, KV, or R2 as applicable). Usage MUST be checked against free-tier
   quotas before adding features that increase read/write volume.
 - **CI/CD**: All builds, tests, and deployments for the Public UI, Admin API, and Admin UI MUST
-  run through GitHub Actions pipelines. Manual/local deploys to shared environments are
-  prohibited outside of the initial dev bootstrap.
+  run through GitHub Actions pipelines. Every pull request MUST run its affected project's tests
+  and prerequisite checks (build, typecheck, and any other configured checks); a pull request
+  MUST NOT be merged while those checks are failing. Merging a pull request into `master` MUST
+  automatically trigger deployment of the affected project(s) to Cloudflare. Manual/local deploys
+  to shared environments are prohibited outside of the initial dev bootstrap.
 
 ## Development Workflow
 
 - Work starts against a single shared development environment for all three projects.
+- Every unit of work MUST be done in its own git worktree on its own branch — work MUST NOT be
+  done directly against `master` in the repository's primary working directory.
+- Every unit of work MUST be submitted as its own pull request into `master`; direct commits or
+  pushes to `master` are prohibited except for the initial repository bootstrap.
 - Promotion to a production environment is a deliberate, later milestone and MUST be planned as
   its own feature/spec rather than assumed as part of day-one work.
 - Each of the three projects (Public UI, Admin API, Admin UI) MUST have its own workspace and
@@ -109,4 +113,4 @@ updated Sync Impact Report.
   approach against these principles — in particular the three-project separation (Principle I),
   the static-only Public UI (Principle II), and the token-protected Admin API (Principle III).
 
-**Version**: 1.1.0 | **Ratified**: 2026-08-11 | **Last Amended**: 2026-08-11
+**Version**: 1.2.0 | **Ratified**: 2026-08-11 | **Last Amended**: 2026-08-11

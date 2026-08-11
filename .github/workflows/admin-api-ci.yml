@@ -1,0 +1,26 @@
+name: CI admin-api
+
+# Constitution v1.2.0 Platform & Delivery Constraints: every pull request MUST run its
+# affected project's tests and prerequisite checks before it may be merged.
+on:
+  pull_request:
+    branches: [main, master]
+    paths: ["admin-api/**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        working-directory: admin-api
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: admin-api
+        run: npm run typecheck

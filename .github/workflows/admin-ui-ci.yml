@@ -1,0 +1,30 @@
+name: CI admin-ui
+
+# Constitution v1.2.0 Platform & Delivery Constraints: every pull request MUST run its
+# affected project's tests and prerequisite checks before it may be merged.
+on:
+  pull_request:
+    branches: [main, master]
+    paths: ["admin-ui/**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        working-directory: admin-ui
+        run: npm ci
+
+      - name: Typecheck and build (static output only — no server runtime)
+        working-directory: admin-ui
+        run: npm run build
+        env:
+          # A placeholder is fine here — this job only proves the build succeeds, it
+          # never deploys. The real value is injected at deploy time from repo vars.
+          VITE_ADMIN_API_BASE_URL: "http://localhost:8787"
