@@ -6,6 +6,7 @@ import type { AppEnv } from "./types";
 import { authRoutes } from "./routes/auth";
 import { usersRoutes } from "./routes/users";
 import { booksRoutes } from "./routes/books";
+import { adminBooksRoutes } from "./routes/admin-books";
 
 const app = new Hono<AppEnv>();
 
@@ -24,13 +25,14 @@ app.use(
       const allowed = c.env.ALLOWED_ORIGINS.split(",").map((o: string) => o.trim());
       return origin && allowed.includes(origin) ? origin : "";
     },
-    allowMethods: ["GET", "POST"],
+    allowMethods: ["GET", "POST", "PATCH", "DELETE"],
     allowHeaders: ["Content-Type", "Authorization"],
   }),
 );
 
 app.route("/auth", authRoutes);
 app.route("/admin/users", usersRoutes);
+app.route("/admin/books", adminBooksRoutes);
 app.route("/books", booksRoutes);
 
 export default app;
