@@ -5,6 +5,7 @@ import { cors } from "hono/cors";
 import type { AppEnv } from "./types";
 import { authRoutes } from "./routes/auth";
 import { usersRoutes } from "./routes/users";
+import { booksRoutes } from "./routes/books";
 
 const app = new Hono<AppEnv>();
 
@@ -30,5 +31,6 @@ app.use(
 
 app.route("/auth", authRoutes);
 app.route("/admin/users", usersRoutes);
+app.route("/books", booksRoutes);
 
 export default app;
