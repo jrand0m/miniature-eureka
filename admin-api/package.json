@@ -8,7 +8,8 @@
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
     "db:migrate:local": "wrangler d1 migrations apply library-admin-db --local",
-    "db:migrate:remote": "wrangler d1 migrations apply library-admin-db --remote"
+    "db:migrate:remote": "wrangler d1 migrations apply library-admin-db --remote",
+    "db:seed:local": "node scripts/seed-books.mjs"
   },
   "dependencies": {
     "hono": "^4.13.1"
