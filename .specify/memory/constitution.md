@@ -1,17 +1,21 @@
 <!--
 Sync Impact Report
-Version change: 1.1.0 → 1.2.0
-Modified principles: none (Core Principles I–V unchanged)
-Added sections: none — materially expanded the existing Platform & Delivery Constraints CI/CD
-  bullet (PR test/prerequisite gate; merge-to-master MUST trigger Cloudflare deployment) and the
-  Development Workflow section (per-task git worktree isolation; every unit of work MUST land via
-  its own pull request, direct commits/pushes to master prohibited except initial bootstrap).
+Version change: 1.2.0 → 1.3.0
+Modified principles: I. Separated Frontend & Backend Projects (broadened the Admin API's
+  permitted unauthenticated/public surface); II. Static-First Public Delivery (broadened what
+  browser JS in the static bundle MAY call at runtime to match Principle I)
+Added sections: none — introduced and defined the "public library surface" concept within the
+  existing Principle I text (unauthenticated book browse/search endpoints, plus authenticated
+  end-user endpoints gated by the requireAuth pattern covering a signed-in user's own
+  reservations, return requests, and notification stream/inbox), and referenced it from
+  Principle II. The Public UI's prohibition on calling admin-scoped (/admin/*) endpoints is
+  retained and made explicit.
 Removed sections: none
-Templates requiring updates: ⚠ pending — plan/spec/tasks templates read this constitution at runtime;
-  no template files were modified by this command per the constitution scope guard.
+Templates requiring updates: ⚠ pending — plan/spec/tasks templates read this constitution at
+  runtime; no template files were modified by this command per the constitution scope guard.
 Follow-up TODOs: none — see Next Actions for the deferred, non-governance implementation work
-  (updating the three existing GitHub Actions workflow files to add a PR test/prerequisite gate
-  and to trigger only on merge to master for deploy).
+  (book browse/search, user reservations, user-initiated returns, admin inventory/oversight, and
+  a per-user SSE notification stream).
 -->
 
 # Library Platform Constitution
@@ -22,28 +26,38 @@ Follow-up TODOs: none — see Next Actions for the deferred, non-governance impl
 ### I. Separated Frontend & Backend Projects
 The system MUST be split into three independently deployable projects: (1) a Public UI,
 (2) an Admin API, and (3) an Admin UI. Each project MUST build and deploy independently, with
-no shared runtime process. The Admin API is the system's single backend: it MAY expose a small,
-narrowly-scoped set of unauthenticated account endpoints (e.g., registration, login, logout)
-that the Public UI calls at runtime, in addition to its token-protected administrative
-endpoints. The Admin UI MUST communicate with the system exclusively through the Admin API — it
-MUST NOT access any datastore or backend logic directly — and the Public UI MUST NOT call any
-backend other than the Admin API's public account endpoints.
+no shared runtime process. The Admin API is the system's single backend: in addition to its
+token-protected administrative endpoints (`/admin/*`), it MAY expose a **public library
+surface** consisting of (a) a small, narrowly-scoped set of unauthenticated account endpoints
+(e.g., registration, login, logout), (b) unauthenticated, read-only book browse/search endpoints
+over the catalog, and (c) authenticated end-user endpoints gated by a valid user auth token
+(the `requireAuth` pattern, distinct from the admin-only `requireAdminToken` pattern) that let a
+signed-in user act on their own data — creating, viewing, and cancelling their own reservations,
+requesting returns, and reading their own notification stream/inbox. The Admin UI MUST
+communicate with the system exclusively through the Admin API — it MUST NOT access any datastore
+or backend logic directly — and the Public UI MUST NOT call any backend other than the Admin
+API's public library surface; the Public UI MUST NOT call any admin-scoped (`/admin/*`) endpoint.
 **Rationale**: Independent deployability lets each surface evolve, scale, and fail
 independently, and keeps the trust boundary between public-facing and administrative surfaces
-explicit; letting one backend expose both a narrow public surface and a protected
-administrative surface avoids standing up a fourth project for a handful of account endpoints.
+explicit; letting one backend expose a public library surface (self-service account, catalog,
+and a signed-in user's own actions) alongside a protected administrative surface avoids standing
+up additional projects while still drawing a hard line at admin-scoped endpoints.
 
 ### II. Static-First Public Delivery
 The Public UI MUST be compiled ahead of time into static assets (HTML/CSS/JS) and served,
 unchanged, from Cloudflare Pages — never from a server-rendering or compute runtime. This
 principle constrains the hosting/build layer, not the browser: JavaScript shipped in the static
-bundle MAY make runtime calls, from the visitor's browser, to the Admin API's narrow public
-account surface (registration, login, logout). Every other page and every other piece of
-content MUST be resolved at build time; the Public UI MUST NOT depend on server-side rendering
-and MUST NOT call any backend endpoint beyond that narrow, publicly-documented account surface.
+bundle MAY make runtime calls, from the visitor's browser, to the Admin API's public library
+surface as defined in Principle I — the unauthenticated account and catalog endpoints, and, once
+the visitor holds a valid user auth token, the authenticated endpoints for their own
+reservations, returns, and notifications. Every other page and every other piece of content MUST
+be resolved at build time; the Public UI MUST NOT depend on server-side rendering and MUST NOT
+call any backend endpoint beyond that publicly-documented public library surface — in
+particular, it MUST NOT call any admin-scoped (`/admin/*`) endpoint.
 **Rationale**: A statically hosted public surface has no server runtime to attack, needs no
-scaling logic, and fits entirely within a free hosting tier; permitting a narrow set of
-browser-initiated account calls is what makes self-service login/registration possible without
+scaling logic, and fits entirely within a free hosting tier; permitting browser-initiated calls
+to the account, catalog, and the caller's own authenticated actions is what makes self-service
+login/registration, browsing, reservations, returns, and notifications possible without
 reintroducing server-side rendering or a fourth project.
 
 ### III. Token-Protected Admin Access (NON-NEGOTIABLE)
@@ -113,4 +127,4 @@ updated Sync Impact Report.
   approach against these principles — in particular the three-project separation (Principle I),
   the static-only Public UI (Principle II), and the token-protected Admin API (Principle III).
 
-**Version**: 1.2.0 | **Ratified**: 2026-08-11 | **Last Amended**: 2026-08-11
+**Version**: 1.3.0 | **Ratified**: 2026-08-11 | **Last Amended**: 2026-08-11
