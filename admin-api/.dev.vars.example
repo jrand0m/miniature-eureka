@@ -1,0 +1,2 @@
+TOKEN_SIGNING_SECRET=replace-with-a-long-random-value
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5174

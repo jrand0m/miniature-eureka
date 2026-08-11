@@ -1,0 +1,41 @@
+name: Deploy admin-api
+
+on:
+  push:
+    branches: [main, master]
+    paths: ["admin-api/**"]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        working-directory: admin-api
+        run: npm ci
+
+      - name: Apply D1 migrations
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: admin-api
+          command: d1 migrations apply library-admin-db --remote
+
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: admin-api
+          command: deploy
+          secrets: |
+            TOKEN_SIGNING_SECRET
+        env:
+          TOKEN_SIGNING_SECRET: ${{ secrets.TOKEN_SIGNING_SECRET }}

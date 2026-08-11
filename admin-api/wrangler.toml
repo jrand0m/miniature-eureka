@@ -1,0 +1,14 @@
+name = "library-admin-api"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "library-admin-db"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "src/db/migrations"
+
+[vars]
+# TOKEN_SIGNING_SECRET is set via `wrangler secret put` (or a GitHub Actions secret in
+# CI) — never committed here. ALLOWED_ORIGINS is not secret; override per environment.
+ALLOWED_ORIGINS = "https://library.example.com,https://admin.library.example.com"

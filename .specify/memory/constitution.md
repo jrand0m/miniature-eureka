@@ -1,8 +1,16 @@
 <!--
 Sync Impact Report
-Version change: [TEMPLATE] → 1.0.0
-Modified principles: n/a (initial ratification — all principles newly defined)
-Added sections: Core Principles (I–V), Platform & Delivery Constraints, Development Workflow, Governance
+Version change: 1.0.0 → 1.1.0
+Modified principles:
+  - I. Separated Frontend & Backend Projects — clarified that the Admin API MAY expose a narrow
+    set of unauthenticated account endpoints (registration/login/logout) consumed by the Public
+    UI, in addition to its token-protected administrative endpoints.
+  - II. Static-First Public Delivery — clarified that "no computation" constrains the
+    hosting/build layer (no server-rendering runtime), not the browser: client-side JS in the
+    static bundle may call the Admin API's narrow public account surface at runtime. Named
+    Cloudflare Pages explicitly as the hosting mechanism.
+Added sections: none (expanded existing Platform & Delivery Constraints hosting bullet to state
+  the Admin UI's hosting model, previously unspecified)
 Removed sections: none
 Templates requiring updates: ⚠ pending — plan/spec/tasks templates read this constitution at runtime;
   no template files were modified by this command per the constitution scope guard.
@@ -17,19 +25,29 @@ Follow-up TODOs: none
 ### I. Separated Frontend & Backend Projects
 The system MUST be split into three independently deployable projects: (1) a Public UI,
 (2) an Admin API, and (3) an Admin UI. Each project MUST build and deploy independently, with
-no shared runtime process. The Admin UI MUST communicate with the system exclusively through
-the Admin API — it MUST NOT access any datastore or backend logic directly.
+no shared runtime process. The Admin API is the system's single backend: it MAY expose a small,
+narrowly-scoped set of unauthenticated account endpoints (e.g., registration, login, logout)
+that the Public UI calls at runtime, in addition to its token-protected administrative
+endpoints. The Admin UI MUST communicate with the system exclusively through the Admin API — it
+MUST NOT access any datastore or backend logic directly — and the Public UI MUST NOT call any
+backend other than the Admin API's public account endpoints.
 **Rationale**: Independent deployability lets each surface evolve, scale, and fail
 independently, and keeps the trust boundary between public-facing and administrative surfaces
-explicit.
+explicit; letting one backend expose both a narrow public surface and a protected
+administrative surface avoids standing up a fourth project for a handful of account endpoints.
 
 ### II. Static-First Public Delivery
-The Public UI MUST be compiled ahead of time into static assets (HTML/CSS/JS) and served as a
-static site with no server-side or runtime computation. Any data the Public UI needs MUST be
-resolved at build time; the Public UI MUST NOT call authenticated or computed backend endpoints
-at request time.
-**Rationale**: A static public surface has no runtime attack surface, needs no scaling logic,
-and fits entirely within a free hosting tier.
+The Public UI MUST be compiled ahead of time into static assets (HTML/CSS/JS) and served,
+unchanged, from Cloudflare Pages — never from a server-rendering or compute runtime. This
+principle constrains the hosting/build layer, not the browser: JavaScript shipped in the static
+bundle MAY make runtime calls, from the visitor's browser, to the Admin API's narrow public
+account surface (registration, login, logout). Every other page and every other piece of
+content MUST be resolved at build time; the Public UI MUST NOT depend on server-side rendering
+and MUST NOT call any backend endpoint beyond that narrow, publicly-documented account surface.
+**Rationale**: A statically hosted public surface has no server runtime to attack, needs no
+scaling logic, and fits entirely within a free hosting tier; permitting a narrow set of
+browser-initiated account calls is what makes self-service login/registration possible without
+reintroducing server-side rendering or a fourth project.
 
 ### III. Token-Protected Admin Access (NON-NEGOTIABLE)
 All Admin API endpoints MUST require token-based authentication using a standard, well-reviewed
@@ -57,8 +75,9 @@ proven end-to-end.
 
 ## Platform & Delivery Constraints
 
-- **Hosting/runtime**: The Admin API MUST run on Cloudflare Workers. The Public UI MUST be
-  served as static assets via Cloudflare's static hosting.
+- **Hosting/runtime**: The Admin API MUST run on Cloudflare Workers. Both the Public UI and the
+  Admin UI MUST be compiled to static assets and served from Cloudflare Pages — neither frontend
+  runs on Workers or any other compute runtime; only the Admin API does.
 - **Data storage**: Any persistent store used by the Admin API MUST fit within Cloudflare's
   free-tier limits (e.g., D1, KV, or R2 as applicable). Usage MUST be checked against free-tier
   quotas before adding features that increase read/write volume.
@@ -90,4 +109,4 @@ updated Sync Impact Report.
   approach against these principles — in particular the three-project separation (Principle I),
   the static-only Public UI (Principle II), and the token-protected Admin API (Principle III).
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-11 | **Last Amended**: 2026-08-11
+**Version**: 1.1.0 | **Ratified**: 2026-08-11 | **Last Amended**: 2026-08-11
