@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Browse Catalog — Library</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body class="catalog-page">
+    <nav>
+      <a href="/">Home</a>
+      <a href="/catalog.html">Browse Catalog</a>
+      <a href="/register.html">Register</a>
+      <a href="/login.html">Log in</a>
+    </nav>
+    <h1>Browse the Catalog</h1>
+    <form id="search-form">
+      <label for="title">Title</label>
+      <input id="title" name="title" type="search" placeholder="Search by title" />
+      <label for="author">Author</label>
+      <input id="author" name="author" type="search" placeholder="Search by author" />
+      <button type="submit">Search</button>
+    </form>
+    <p id="message" class="message" role="status"></p>
+    <ul id="results" class="book-list"></ul>
+    <div id="pagination" class="pagination"></div>
+    <script type="module" src="/src/pages/catalog.ts"></script>
+  </body>
+</html>
