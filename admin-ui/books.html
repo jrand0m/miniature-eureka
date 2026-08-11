@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Books — Library Admin</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body class="books-page">
+    <nav>
+      <a href="/users.html">Users</a>
+      <a href="/books.html">Books</a>
+      <button id="logout-button" type="button">Log out</button>
+    </nav>
+    <h1>Books</h1>
+    <p id="message" class="message" role="status"></p>
+
+    <form id="book-form">
+      <h2 id="form-heading">Add a book</h2>
+      <label for="title">Title</label>
+      <input id="title" name="title" type="text" required />
+      <label for="author">Author</label>
+      <input id="author" name="author" type="text" required />
+      <label for="isbn">ISBN</label>
+      <input id="isbn" name="isbn" type="text" />
+      <label for="description">Description</label>
+      <input id="description" name="description" type="text" />
+      <label for="quantityTotal">Total copies</label>
+      <input id="quantityTotal" name="quantityTotal" type="number" min="0" step="1" />
+      <button id="submit-button" type="submit">Add book</button>
+      <button id="cancel-edit-button" type="button" hidden>Cancel</button>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Author</th>
+          <th>ISBN</th>
+          <th>Total</th>
+          <th>Available</th>
+          <th>Adjust quantity</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="books-body"></tbody>
+    </table>
+    <div id="pagination" class="pagination"></div>
+    <script type="module" src="/src/pages/books.ts"></script>
+  </body>
+</html>
