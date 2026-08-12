@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Profile — Library</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body class="profile-page">
+    <nav>
+      <a href="/">Home</a>
+      <a href="/catalog.html">Browse Catalog</a>
+      <a href="/profile.html">My Profile</a>
+      <a href="/register.html">Register</a>
+      <a href="/login.html">Log in</a>
+      <div id="notifications-root"></div>
+    </nav>
+    <h1>My Profile</h1>
+    <p id="login-prompt" class="message" role="status" hidden>
+      Please <a href="/login.html">log in</a> to view your reservations.
+    </p>
+    <section id="reservations-section" hidden>
+      <h2>My Reservations</h2>
+      <p id="empty-message" class="message" hidden>You have no reservations yet.</p>
+      <p id="return-message" class="message" role="status"></p>
+      <ul id="reservations-list" class="reservation-list"></ul>
+    </section>
+    <script type="module" src="/src/pages/profile.ts"></script>
+  </body>
+</html>
