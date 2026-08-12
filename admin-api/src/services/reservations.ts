@@ -193,6 +193,43 @@ export async function confirmReservation(
   return { outcome: "ok", reservation: reservation! };
 }
 
+// T002 (005-user-profile-return): a signed-in user requests a return of their own checked-out
+// reservation — see specs/005-user-profile-return/research.md §2 and §4 for why the ownership
+// check lives here and collapses "doesn't exist" and "belongs to someone else" into the same
+// not_found outcome.
+export type RequestReturnResult =
+  | { outcome: "not_found" }
+  | { outcome: "invalid_status_transition" }
+  | { outcome: "ok"; reservation: ReservationRecord };
+
+export async function requestReturn(
+  db: D1Database,
+  id: string,
+  userId: string,
+  preferredReturnDate: string,
+): Promise<RequestReturnResult> {
+  const existing = await findReservationById(db, id);
+  if (!existing || existing.userId !== userId) {
+    return { outcome: "not_found" };
+  }
+
+  const now = new Date().toISOString();
+  const transition = await db
+    .prepare(
+      `UPDATE reservations SET status = 'return_requested', return_requested_date = ?1, updated_at = ?2
+       WHERE id = ?3 AND status = 'checked_out'`,
+    )
+    .bind(preferredReturnDate, now, id)
+    .run();
+
+  if ((transition.meta.changes ?? 0) === 0) {
+    return { outcome: "invalid_status_transition" };
+  }
+
+  const reservation = await findReservationById(db, id);
+  return { outcome: "ok", reservation: reservation! };
+}
+
 export type CheckOutReservationResult =
   | { outcome: "not_found" }
   | { outcome: "invalid_status_transition" }
