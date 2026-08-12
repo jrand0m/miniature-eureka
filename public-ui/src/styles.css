@@ -56,6 +56,81 @@ nav a {
   margin-right: 1rem;
 }
 
+.notifications {
+  position: relative;
+  display: inline-block;
+}
+
+.notifications-toggle {
+  position: relative;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+}
+
+.notifications-badge {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  background: #b00020;
+  color: white;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  padding: 0.05rem 0.4rem;
+  line-height: 1.2;
+}
+
+.notifications-panel {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 10;
+  width: 20rem;
+  max-height: 24rem;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+}
+
+.notifications-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.notification {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.notification p {
+  margin: 0 0 0.25rem;
+}
+
+.notification-time {
+  display: block;
+  color: #777;
+  font-size: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.notification-unread {
+  font-weight: 600;
+}
+
+.notifications-empty {
+  font-size: 0.85rem;
+}
+
 body.catalog-page {
   max-width: 40rem;
 }

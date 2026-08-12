@@ -1,7 +1,8 @@
 // T008: Reservation data-access service — see specs/004-reservation-flow/data-model.md and
 // research.md §3 for the guarded-update-with-compensation concurrency pattern used by
 // confirmReservation.
-import { decrementQuantityAvailable, incrementQuantityAvailable } from "./books";
+import { decrementQuantityAvailable, incrementQuantityAvailable, findBookById } from "./books";
+import { createNotification } from "./notifications";
 
 export type ReservationStatus =
   | "pending"
@@ -217,6 +218,18 @@ export async function confirmReservation(
   }
 
   const reservation = await findReservationById(db, id);
+
+  // T005 (006-notifications): notify the reservation's owner that it was confirmed. Only on the
+  // success path — no notification is created for the no_copies_available compensation case
+  // above, since that event never actually happened. See specs/006-notifications/research.md §5.
+  const book = await findBookById(db, existing.bookId);
+  await createNotification(db, {
+    userId: existing.userId,
+    type: "reservation_confirmed",
+    message: `Your reservation for "${book?.title ?? "your book"}" was confirmed for ${agreedDate}.`,
+    relatedReservationId: id,
+  });
+
   return { outcome: "ok", reservation: reservation! };
 }
 
@@ -256,6 +269,16 @@ export async function confirmReturn(db: D1Database, id: string): Promise<Confirm
   }
 
   const reservation = await findReservationById(db, id);
+
+  // T007 (006-notifications): notify the owner their return was confirmed.
+  const book = await findBookById(db, existing.bookId);
+  await createNotification(db, {
+    userId: existing.userId,
+    type: "return_confirmed",
+    message: `Your return of "${book?.title ?? "your book"}" has been confirmed. Thank you!`,
+    relatedReservationId: id,
+  });
+
   return { outcome: "ok", reservation: reservation! };
 }
 
@@ -289,6 +312,16 @@ export async function forceReturn(db: D1Database, id: string): Promise<ForceRetu
   }
 
   const reservation = await findReservationById(db, id);
+
+  // T006 (006-notifications): notify the owner the library has requested an early return.
+  const book = await findBookById(db, existing.bookId);
+  await createNotification(db, {
+    userId: existing.userId,
+    type: "force_return_requested",
+    message: `Please return "${book?.title ?? "your book"}" soon — the library has requested an early return.`,
+    relatedReservationId: id,
+  });
+
   return { outcome: "ok", reservation: reservation! };
 }
 

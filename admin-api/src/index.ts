@@ -9,6 +9,7 @@ import { booksRoutes } from "./routes/books";
 import { adminBooksRoutes } from "./routes/admin-books";
 import { reservationsRoutes } from "./routes/reservations";
 import { adminReservationsRoutes } from "./routes/admin-reservations";
+import { notificationsRoutes } from "./routes/notifications";
 
 const app = new Hono<AppEnv>();
 
@@ -40,5 +41,8 @@ app.route("/books", booksRoutes);
 app.route("/reservations", reservationsRoutes);
 // T014: admin-only reservation endpoints — see routes/admin-reservations.ts
 app.route("/admin/reservations", adminReservationsRoutes);
+// T004 (006-notifications): per-user notification history/read/stream endpoints — see
+// routes/notifications.ts
+app.route("/notifications", notificationsRoutes);
 
 export default app;

@@ -5,6 +5,10 @@
 // catalog.ts / auth-status.ts.
 import { getToken } from "../services/auth-client";
 import { listMyReservations, requestReturn, type Reservation } from "../services/reservations-client";
+import { mountNotifications } from "../components/notifications";
+
+// T014 (006-notifications): bell/badge/panel, visible only when signed in.
+mountNotifications(document.querySelector<HTMLDivElement>("#notifications-root")!);
 
 const loginPrompt = document.querySelector<HTMLParagraphElement>("#login-prompt")!;
 const reservationsSection = document.querySelector<HTMLElement>("#reservations-section")!;
