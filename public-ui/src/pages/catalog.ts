@@ -5,6 +5,10 @@
 import { listBooks, type Book } from "../services/books-client";
 import { getToken } from "../services/auth-client";
 import { createReservation, listMyReservations, type Reservation } from "../services/reservations-client";
+import { mountNotifications } from "../components/notifications";
+
+// T014 (006-notifications): bell/badge/panel, visible only when signed in.
+mountNotifications(document.querySelector<HTMLDivElement>("#notifications-root")!);
 
 const form = document.querySelector<HTMLFormElement>("#search-form")!;
 const message = document.querySelector<HTMLParagraphElement>("#message")!;

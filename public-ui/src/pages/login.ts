@@ -1,8 +1,12 @@
 // T020: login form.
 import { login, setToken } from "../services/auth-client";
+import { mountNotifications } from "../components/notifications";
 
 const form = document.querySelector<HTMLFormElement>("#login-form")!;
 const message = document.querySelector<HTMLParagraphElement>("#message")!;
+
+// T014 (006-notifications): bell/badge/panel, visible only when signed in.
+mountNotifications(document.querySelector<HTMLDivElement>("#notifications-root")!);
 
 function showMessage(text: string, kind: "error" | "success") {
   message.textContent = text;
