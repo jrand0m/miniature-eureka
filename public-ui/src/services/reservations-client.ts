@@ -59,3 +59,22 @@ export async function listMyReservations(): Promise<ApiResult<{ reservations: Re
   const data = (await res.json().catch(() => ({}))) as { reservations: Reservation[] } | ReservationError;
   return { ok: res.ok, status: res.status, data };
 }
+
+// T008 (005-user-profile-return): request a return of one of the caller's own checked_out
+// reservations — see specs/005-user-profile-return/contracts/admin-api.md.
+export async function requestReturn(
+  reservationId: string,
+  preferredReturnDate: string,
+): Promise<ApiResult<{ reservation: Reservation } | ReservationError>> {
+  const token = getToken();
+  const res = await fetch(`${API_BASE}/reservations/${reservationId}/return-request`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ preferredReturnDate }),
+  });
+  const data = (await res.json().catch(() => ({}))) as { reservation: Reservation } | ReservationError;
+  return { ok: res.ok, status: res.status, data };
+}
