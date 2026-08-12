@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Loans — Library Admin</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body class="books-page">
+    <nav>
+      <a href="/users.html">Users</a>
+      <a href="/books.html">Books</a>
+      <a href="/loans.html">Loans</a>
+      <button id="logout-button" type="button">Log out</button>
+    </nav>
+    <h1>Loans</h1>
+    <p id="message" class="message" role="status"></p>
+
+    <form id="filter-form" class="filters">
+      <label for="filter-status">
+        Status
+        <select id="filter-status" name="status">
+          <option value="">All</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="checked_out">Checked out</option>
+          <option value="return_requested">Return requested</option>
+          <option value="returned">Returned</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </label>
+      <label for="filter-book-id">
+        Book ID
+        <input id="filter-book-id" name="bookId" type="text" placeholder="Filter by book id" />
+      </label>
+      <label for="filter-user-id">
+        User ID
+        <input id="filter-user-id" name="userId" type="text" placeholder="Filter by user id" />
+      </label>
+      <button id="apply-filters-button" type="submit">Apply filters</button>
+      <button id="clear-filters-button" type="button">Clear</button>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Book</th>
+          <th>Holder</th>
+          <th>Status</th>
+          <th>Requested</th>
+          <th>Agreed</th>
+          <th>Checked out</th>
+          <th>Returned</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="loans-body"></tbody>
+    </table>
+    <script type="module" src="/src/pages/loans.ts"></script>
+  </body>
+</html>

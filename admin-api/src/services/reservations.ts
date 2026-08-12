@@ -1,7 +1,7 @@
 // T008: Reservation data-access service — see specs/004-reservation-flow/data-model.md and
 // research.md §3 for the guarded-update-with-compensation concurrency pattern used by
 // confirmReservation.
-import { decrementQuantityAvailable } from "./books";
+import { decrementQuantityAvailable, incrementQuantityAvailable } from "./books";
 
 export type ReservationStatus =
   | "pending"
@@ -20,6 +20,9 @@ export interface ReservationRecord {
   agreedDate: string | null;
   checkedOutAt: string | null;
   returnedAt: string | null;
+  // T003: admin "force early return" marker — see specs/005-admin-loan-oversight/data-model.md.
+  // Never implies a status change by itself; set/re-set only by forceReturn.
+  forceReturnRequestedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -39,6 +42,7 @@ interface ReservationRow {
   agreed_date: string | null;
   checked_out_at: string | null;
   returned_at: string | null;
+  force_return_requested_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -59,6 +63,7 @@ function mapRow(row: ReservationRow): ReservationRecord {
     agreedDate: row.agreed_date,
     checkedOutAt: row.checked_out_at,
     returnedAt: row.returned_at,
+    forceReturnRequestedAt: row.force_return_requested_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -96,6 +101,7 @@ export async function createReservation(
     agreedDate: null,
     checkedOutAt: null,
     returnedAt: null,
+    forceReturnRequestedAt: null,
     createdAt: now,
     updatedAt: now,
   };
@@ -127,10 +133,29 @@ export function isValidReservationStatus(value: string): value is ReservationSta
   return (VALID_STATUSES as string[]).includes(value);
 }
 
+// T004: bookId/userId filters added alongside the existing status filter — combined via AND
+// when multiple are supplied. See specs/005-admin-loan-oversight/data-model.md.
 export async function listReservationsForAdmin(
   db: D1Database,
-  status?: ReservationStatus,
+  filters?: { status?: ReservationStatus; bookId?: string; userId?: string },
 ): Promise<AdminReservationRecord[]> {
+  const conditions: string[] = [];
+  const bindings: unknown[] = [];
+
+  if (filters?.status) {
+    conditions.push("r.status = ?");
+    bindings.push(filters.status);
+  }
+  if (filters?.bookId) {
+    conditions.push("r.book_id = ?");
+    bindings.push(filters.bookId);
+  }
+  if (filters?.userId) {
+    conditions.push("r.user_id = ?");
+    bindings.push(filters.userId);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   const query = `
     SELECT
       r.*,
@@ -140,11 +165,13 @@ export async function listReservationsForAdmin(
     FROM reservations r
     JOIN books b ON b.id = r.book_id
     JOIN users u ON u.id = r.user_id
-    ${status ? "WHERE r.status = ?1" : ""}
+    ${where}
     ORDER BY r.created_at DESC
   `;
-  const stmt = status ? db.prepare(query).bind(status) : db.prepare(query);
-  const { results } = await stmt.all<AdminReservationRow>();
+  const { results } = await db
+    .prepare(query)
+    .bind(...bindings)
+    .all<AdminReservationRow>();
   return results.map(mapAdminRow);
 }
 
@@ -187,6 +214,78 @@ export async function confirmReservation(
       .bind(new Date().toISOString(), id)
       .run();
     return { outcome: "no_copies_available" };
+  }
+
+  const reservation = await findReservationById(db, id);
+  return { outcome: "ok", reservation: reservation! };
+}
+
+export type ConfirmReturnResult =
+  | { outcome: "not_found" }
+  | { outcome: "invalid_status_transition" }
+  | { outcome: "ok"; reservation: ReservationRecord };
+
+// T007: POST /admin/reservations/:id/confirm-return — valid from 'checked_out' or
+// 'return_requested' (an admin can confirm a physical return even without a prior explicit
+// return request). See specs/005-admin-loan-oversight/data-model.md and research.md §3.
+export async function confirmReturn(db: D1Database, id: string): Promise<ConfirmReturnResult> {
+  const existing = await findReservationById(db, id);
+  if (!existing) {
+    return { outcome: "not_found" };
+  }
+
+  const now = new Date().toISOString();
+  const transition = await db
+    .prepare(
+      `UPDATE reservations SET status = 'returned', returned_at = ?1, updated_at = ?1
+       WHERE id = ?2 AND status IN ('checked_out', 'return_requested')`,
+    )
+    .bind(now, id)
+    .run();
+
+  if ((transition.meta.changes ?? 0) === 0) {
+    return { outcome: "invalid_status_transition" };
+  }
+
+  const incremented = await incrementQuantityAvailable(db, existing.bookId);
+  if (!incremented) {
+    // Should not happen in normal operation — a checked_out/return_requested reservation implies
+    // a copy is genuinely out, so the table's own quantity_available <= quantity_total CHECK
+    // should never reject this increment. Surface as an unexpected internal error (research.md §3).
+    throw new Error(`incrementQuantityAvailable failed unexpectedly for book ${existing.bookId}`);
+  }
+
+  const reservation = await findReservationById(db, id);
+  return { outcome: "ok", reservation: reservation! };
+}
+
+export type ForceReturnResult =
+  | { outcome: "not_found" }
+  | { outcome: "invalid_status_transition" }
+  | { outcome: "ok"; reservation: ReservationRecord };
+
+// T009: POST /admin/reservations/:id/force-return — valid only from 'checked_out' or 'confirmed'.
+// Does NOT change status (the book is still physically out); only sets
+// force_return_requested_at. Idempotent: no extra guard on the column's current value, so a
+// repeat call still matches the WHERE and simply overwrites the timestamp. See
+// specs/005-admin-loan-oversight/data-model.md and research.md §4.
+export async function forceReturn(db: D1Database, id: string): Promise<ForceReturnResult> {
+  const existing = await findReservationById(db, id);
+  if (!existing) {
+    return { outcome: "not_found" };
+  }
+
+  const now = new Date().toISOString();
+  const transition = await db
+    .prepare(
+      `UPDATE reservations SET force_return_requested_at = ?1, updated_at = ?1
+       WHERE id = ?2 AND status IN ('checked_out', 'confirmed')`,
+    )
+    .bind(now, id)
+    .run();
+
+  if ((transition.meta.changes ?? 0) === 0) {
+    return { outcome: "invalid_status_transition" };
   }
 
   const reservation = await findReservationById(db, id);
