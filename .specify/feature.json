@@ -1,1 +1,3 @@
-{"feature_directory":"specs/006-notifications"}
+{
+  "feature_directory": "specs/003-book-backfill-seed"
+}
