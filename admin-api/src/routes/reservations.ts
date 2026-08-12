@@ -14,6 +14,8 @@ export const reservationsRoutes = new Hono<AppEnv>();
 
 reservationsRoutes.use("*", requireAuth);
 
+// T011: forceReturnRequestedAt included so a signed-in user can see whether an admin has
+// flagged their loan for early return — see specs/005-admin-loan-oversight/contracts/admin-api.md.
 function serializeReservation(r: ReservationRecord) {
   return {
     id: r.id,
@@ -24,6 +26,7 @@ function serializeReservation(r: ReservationRecord) {
     agreedDate: r.agreedDate,
     checkedOutAt: r.checkedOutAt,
     returnedAt: r.returnedAt,
+    forceReturnRequestedAt: r.forceReturnRequestedAt,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
   };

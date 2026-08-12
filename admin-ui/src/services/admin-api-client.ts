@@ -146,3 +146,58 @@ export async function adjustBookQuantity(
     body: JSON.stringify({ delta }),
   });
 }
+
+// T012: admin loan oversight — see specs/005-admin-loan-oversight/contracts/admin-api.md
+export type AdminReservationStatus =
+  | "pending"
+  | "confirmed"
+  | "checked_out"
+  | "return_requested"
+  | "returned"
+  | "cancelled";
+
+export interface AdminReservation {
+  id: string;
+  bookId: string;
+  bookTitle: string;
+  bookAuthor: string;
+  userId: string;
+  userEmail: string;
+  status: AdminReservationStatus;
+  requestedDate: string;
+  agreedDate: string | null;
+  checkedOutAt: string | null;
+  returnedAt: string | null;
+  forceReturnRequestedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ListAdminReservationsFilters {
+  status?: AdminReservationStatus;
+  bookId?: string;
+  userId?: string;
+}
+
+export async function listAdminReservations(
+  filters: ListAdminReservationsFilters = {},
+): Promise<ApiResult<{ reservations: AdminReservation[] } | { error: string }>> {
+  const query = new URLSearchParams();
+  if (filters.status) query.set("status", filters.status);
+  if (filters.bookId) query.set("bookId", filters.bookId);
+  if (filters.userId) query.set("userId", filters.userId);
+  const qs = query.toString();
+  return request(`/admin/reservations${qs ? `?${qs}` : ""}`);
+}
+
+export async function confirmReturn(
+  id: string,
+): Promise<ApiResult<{ reservation: AdminReservation } | { error: string }>> {
+  return request(`/admin/reservations/${id}/confirm-return`, { method: "POST" });
+}
+
+export async function forceReturn(
+  id: string,
+): Promise<ApiResult<{ reservation: AdminReservation } | { error: string }>> {
+  return request(`/admin/reservations/${id}/force-return`, { method: "POST" });
+}

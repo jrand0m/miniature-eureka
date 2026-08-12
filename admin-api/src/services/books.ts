@@ -108,6 +108,20 @@ export async function decrementQuantityAvailable(db: D1Database, bookId: string)
   return (result.meta.changes ?? 0) > 0;
 }
 
+// T006: mirror-image guarded increment, used when an admin confirms a book's return — see
+// specs/005-admin-loan-oversight/research.md §3. No upper-bound guard is needed beyond the
+// table's own `CHECK (quantity_available <= quantity_total)` constraint: a `checked_out`/
+// `return_requested` reservation implies a copy is genuinely out, so that CHECK should never be
+// violated in normal operation. If it somehow is, the UPDATE fails (`changes === 0`) and the
+// caller treats that as an unexpected internal error, not a modeled outcome.
+export async function incrementQuantityAvailable(db: D1Database, bookId: string): Promise<boolean> {
+  const result = await db
+    .prepare("UPDATE books SET quantity_available = quantity_available + 1 WHERE id = ?1")
+    .bind(bookId)
+    .run();
+  return (result.meta.changes ?? 0) > 0;
+}
+
 export interface CreateBookParams {
   title: string;
   author: string;
