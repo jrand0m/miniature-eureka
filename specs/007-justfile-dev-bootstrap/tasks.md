@@ -24,7 +24,7 @@ Single new file at the repo root: `justfile` (sibling to `admin-api/`, `admin-ui
 
 **Purpose**: Establish the file and its documented conventions before any recipe logic
 
-- [ ] T001 Create `justfile` at the repo root with: (a) a top-of-file comment documenting the
+- [X] T001 Create `justfile` at the repo root with: (a) a top-of-file comment documenting the
       generic-to-specific composite naming convention this file follows (per
       `research.md`'s "Multi-word recipe invocation" decision), (b) a brief README-style comment
       block explaining that `just dev up all` is the one-command bootstrap, and (c) a `default`
@@ -43,16 +43,16 @@ single-step usage (US3) depend on. Must be complete and individually working bef
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 Implement the `install target` recipe in `justfile`: `case` dispatch on
+- [X] T002 Implement the `install target` recipe in `justfile`: `case` dispatch on
       `all|admin-api|admin-ui|public-ui`, running `npm install` in the corresponding project
       director(y/ies) (always run, no `node_modules/` pre-check, per `research.md`), with a
       usage error to stderr + non-zero exit for any other target
-- [ ] T003 Implement the `env action` recipe in `justfile`: for `action=setup`, copy
+- [X] T003 Implement the `env action` recipe in `justfile`: for `action=setup`, copy
       `admin-api/.dev.vars.example` → `admin-api/.dev.vars`, `admin-ui/.env.example` →
       `admin-ui/.env`, `public-ui/.env.example` → `public-ui/.env`, **only** when the destination
       does not already exist (never overwrite); warn (not fail) if a source `.example` is
       missing; usage error to stderr + non-zero exit for any other action
-- [ ] T004 Implement the `db subcommand target *args` recipe in `justfile`: `migrate local` runs
+- [X] T004 Implement the `db subcommand target *args` recipe in `justfile`: `migrate local` runs
       `admin-api`'s `npm run db:migrate:local`; `seed books` runs `admin-api`'s
       `npm run db:seed:local`, parsing an optional `count=N` word out of `*args` and passing it
       through as `-- --count=N` only when present; usage error to stderr + non-zero exit for any
@@ -74,23 +74,23 @@ servers become reachable at their printed URLs, and Ctrl+C stops all three clean
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] In `justfile`, add the `dev subcommand target` recipe with its `up` subcommand
+- [X] T005 [US1] In `justfile`, add the `dev subcommand target` recipe with its `up` subcommand
       dispatch, and implement the `all` target's prerequisite sequence: shell out to
       `just install all`, `just env setup`, `just db migrate local`, `just db seed books` in
       that order, then print all three expected URLs (`http://localhost:8787`,
       `http://localhost:5173`, `http://localhost:5174`) before touching any server process
-- [ ] T006 [US1] Extend the `up all` branch in `justfile` to start all three dev servers
+- [X] T006 [US1] Extend the `up all` branch in `justfile` to start all three dev servers
       concurrently: a `#!/usr/bin/env bash` shebang recipe body, `set -euo pipefail` + `set -m`
       for per-job process groups, three backgrounded `(cd <project> && exec npm run dev ...) &`
       subshells (admin-ui and public-ui pinned to ports 5173/5174 via
       `-- --port <N> --strictPort`, admin-api left unmodified per `research.md`'s ports
       decision), recording each `$!` into a PID array, ending in a blocking `wait`
-- [ ] T007 [US1] Add a `trap` (INT, TERM, EXIT) in the `up all` branch that runs an idempotent
+- [X] T007 [US1] Add a `trap` (INT, TERM, EXIT) in the `up all` branch that runs an idempotent
       cleanup function: signal each tracked PID's process group (`kill -TERM -$pid`, falling
       back to a plain `kill $pid`), `wait` for everything to actually exit, print a stop
       confirmation, and guard against running the cleanup body twice (a boolean flag) since
       INT/TERM and the script's own natural EXIT can both fire it
-- [ ] T008 [US1] Verify User Story 1 end-to-end against quickstart.md's Scenario 3: run
+- [X] T008 [US1] Verify User Story 1 end-to-end against quickstart.md's Scenario 3: run
       `just dev up all` from a reset state (no `node_modules/`, no env files, no local D1 state)
       in the background with a timeout; confirm install → env → migrate → seed → printed URLs →
       server startup happens in that order; `curl` each of the three URLs and confirm a
@@ -113,14 +113,14 @@ without touching the other two or re-running install/env/migrate/seed.
 
 ### Implementation for User Story 2
 
-- [ ] T009 [US2] Extend the `dev subcommand target` recipe's `up` dispatch in `justfile` with the
+- [X] T009 [US2] Extend the `dev subcommand target` recipe's `up` dispatch in `justfile` with the
       `admin-api`, `admin-ui`, and `public-ui` targets: each prints its own expected URL
       (`http://localhost:8787` for admin-api; `http://localhost:5173` — Vite's unmodified
       default — for admin-ui and public-ui alike, since only one Vite instance runs in this
       path) then runs that project's own `npm run dev` unmodified in the foreground (no port
       pinning, no prerequisite steps); any target outside
       `admin-api|admin-ui|public-ui|all` is a usage error
-- [ ] T010 [US2] Verify User Story 2 against quickstart.md's Scenario 2: with dependencies/env
+- [X] T010 [US2] Verify User Story 2 against quickstart.md's Scenario 2: with dependencies/env
       already set up, run `just dev up admin-api`, `just dev up admin-ui`, and
       `just dev up public-ui` one at a time, confirming each is reachable at its printed URL and
       that no other project's server was started; record results in
@@ -144,7 +144,7 @@ confirm each performs only its own step and is idempotent.
 *(No new implementation — Phase 2's Foundational recipes already provide this behavior. This
 phase exists to explicitly prove the idempotency/no-overwrite guarantees the spec requires.)*
 
-- [ ] T011 [US3] Verify User Story 3 against quickstart.md's Scenario 1: re-run `just install
+- [X] T011 [US3] Verify User Story 3 against quickstart.md's Scenario 1: re-run `just install
       all` when dependencies already exist (no error/corruption); hand-edit a generated
       `.env`/`.dev.vars` file and re-run `just env setup` (edit survives untouched); re-run
       `just db migrate local` when already migrated (no error); re-run `just db seed books` when
@@ -161,7 +161,7 @@ phase exists to explicitly prove the idempotency/no-overwrite guarantees the spe
 **Purpose**: Final whole-feature verification matching the task's "Verify before opening a PR"
 requirements, beyond what any single user story's verification covers in isolation
 
-- [ ] T012 Run the full clean-room-equivalent verification pass: `just install all`,
+- [X] T012 Run the full clean-room-equivalent verification pass: `just install all`,
       `just env setup`, `just db migrate local`, `just db seed books`, then
       `wrangler d1 execute library-admin-db --local --command "SELECT COUNT(*) FROM books"` to
       confirm 30+ seeded books; start `just dev up all` in the background with a timeout, `curl`
@@ -169,7 +169,7 @@ requirements, beyond what any single user story's verification covers in isolati
       three are reachable; stop the run; confirm via `ps` that no orphaned process remains;
       finalize `specs/007-justfile-dev-bootstrap/quickstart.md`'s "Actual verification run"
       section with the exact commands and output from this pass
-- [ ] T013 Review `git diff --stat` against the feature branch's base to confirm no
+- [X] T013 Review `git diff --stat` against the feature branch's base to confirm no
       `admin-api`/`admin-ui`/`public-ui` application source file was modified by this feature
       (only `justfile`, `specs/007-justfile-dev-bootstrap/**`, and the already-committed
       prerequisite seed-script files are expected to differ from `master`)
