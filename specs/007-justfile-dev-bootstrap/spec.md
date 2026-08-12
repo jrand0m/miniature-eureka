@@ -8,6 +8,22 @@
 
 **Input**: User description: "A root `justfile` (repo root, sibling to admin-api/, admin-ui/, public-ui/) that makes local dev setup a single command: just install all / just install <project>, just env setup (copy .env.example/.dev.vars.example to .env/.dev.vars only if missing, never overwrite), just db migrate local, just db seed books [count=N], just dev up <project> (run that project's own dev script in foreground), and just dev up all as the one-command bootstrap — ensure deps installed, ensure env files exist, run db migrate local, run db seed books (full default list), then start all three dev servers concurrently in the same terminal session, backgrounded with proper SIGINT/SIGTERM trap so Ctrl+C kills all three cleanly with no orphaned processes. Print each server's expected local URL/port before starting. A default bare `just` recipe that lists recipes or points to `just dev up all`. This is FEAT-08, the last feature in the buildout — no API/UI behavior changes, pure dev tooling/scripting. Follow the just command naming convention: composite recipes ordered from generic to specific (e.g. `just db seed books`), documented in a top-of-file comment."
 
+## Clarifications
+
+### Session 2026-08-11
+
+No critical ambiguities were identified requiring formal clarification. Running unattended (no
+reviewer available to answer questions), a structured coverage scan (functional scope, data
+model, interaction flow, non-functional attributes, integrations, edge cases, terminology,
+completion signals) found every category already Clear or resolved with a documented default in
+the Assumptions section below: the exact recipe names and their composite-naming ordering are
+fully specified in the originating task description, the environment-file "never overwrite"
+rule and the seed count's default/override behavior are unambiguous, and the "all three servers
+start together, all three stop together with no orphans" requirement is an observable behavior
+the spec states directly (FR-007, FR-008) without needing to pin down a specific process-
+management mechanism — that mechanism is an implementation decision appropriately deferred to
+`/speckit-plan`. Proceeding directly to `/speckit-plan`.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - One-command full-stack bootstrap (Priority: P1)
