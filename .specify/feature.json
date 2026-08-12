@@ -1,3 +1,1 @@
-{
-  "feature_directory": "specs/003-book-backfill-seed"
-}
+{"feature_directory":"specs/007-justfile-dev-bootstrap"}
